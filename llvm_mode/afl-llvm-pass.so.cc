@@ -125,7 +125,8 @@ bool AFLCoverage::runOnModule(Module &M) {
 
       /* Make up cur_loc */
 
-      unsigned int cur_loc = AFL_R(MAP_SIZE);
+      unsigned int cur_loc = AFL_R(MAP_SIZE); //每次都新创建 cur_loc？怎么处理循环基本块？
+      //如果你要看某条边是不是低频的，难道不是要判断已经存在的边的 ID 吗，看这个 边ID 是否在低频边集合里，每次新创建的话怎么实现 “判断边ID” 啊
 
       ConstantInt *CurLoc = ConstantInt::get(Int32Ty, cur_loc);
 

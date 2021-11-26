@@ -808,13 +808,13 @@ static void add_to_queue(u8* fname, u32 len, u8 passed_det) {
   q->fname        = fname;
   q->len          = len;
   q->depth        = cur_depth + 1;
-  q->passed_det   = passed_det;
+  q->passed_det   = passed_det; //是否已经完成 deterministic 变异阶段了
 
   if (q->depth > max_depth) max_depth = q->depth;
 
   if (queue_top) {
 
-    queue_top->next = q;
+    queue_top->next = q; //queue_top 指向刚被加进去的元素啊，是后进的啊，如果pop()会出掉这个的话，岂不是变成了后进先出？
     queue_top = q;
 
   } else q_prev100 = queue = queue_top = q;
@@ -908,14 +908,14 @@ static inline u8 has_new_bits(u8* virgin_map) {
 
 #ifdef WORD_SIZE_64
 
-  u64* current = (u64*)trace_bits;
+  u64* current = (u64*)trace_bits; //一次操作8个字节，一个字节表示一个分支
   u64* virgin  = (u64*)virgin_map;
 
   u32  i = (MAP_SIZE >> 3);
 
 #else
 
-  u32* current = (u32*)trace_bits;
+  u32* current = (u32*)trace_bits; //原来是u8*，转换为u32*，想一次操作4个字节
   u32* virgin  = (u32*)virgin_map;
 
   u32  i = (MAP_SIZE >> 2);
@@ -930,7 +930,7 @@ static inline u8 has_new_bits(u8* virgin_map) {
        that have not been already cleared from the virgin map - since this will
        almost always be the case. */
 
-    if (unlikely(*current) && unlikely(*current & *virgin)) {
+    if (unlikely(*current) && unlikely(*current & *virgin)) { // 
 
       if (likely(ret < 2)) {
 
@@ -945,7 +945,7 @@ static inline u8 has_new_bits(u8* virgin_map) {
         if ((cur[0] && vir[0] == 0xff) || (cur[1] && vir[1] == 0xff) ||
             (cur[2] && vir[2] == 0xff) || (cur[3] && vir[3] == 0xff) ||
             (cur[4] && vir[4] == 0xff) || (cur[5] && vir[5] == 0xff) ||
-            (cur[6] && vir[6] == 0xff) || (cur[7] && vir[7] == 0xff)) ret = 2;
+            (cur[6] && vir[6] == 0xff) || (cur[7] && vir[7] == 0xff)) ret = 2; //一次判断8个分支
         else ret = 1;
 
 #else
@@ -958,11 +958,11 @@ static inline u8 has_new_bits(u8* virgin_map) {
 
       }
 
-      *virgin &= ~*current;
+      *virgin &= ~*current; //【?】如果没有发现新分支，那么这句还有意义吗
 
     }
 
-    current++;
+    current++; //一次加 8 byte，即跳过 8 个分支
     virgin++;
 
   }
@@ -1296,7 +1296,9 @@ static void update_bitmap_score(struct queue_entry* q) {
        q->tc_ref++;
 
        if (!q->trace_mini) {
-         q->trace_mini = ck_alloc(MAP_SIZE >> 3);
+         q->trace_mini = ck_alloc(MAP_SIZE >> 3); 
+         // 考虑一下这里为什么要用 MAP_SIZE >> 3，我觉得原因就是原来一条边的执行次数需要用一个字节来存
+         // 而 trace_mini 不存次数，只存覆盖没有，只需要一个位就可以表示一条边的覆盖情况
          minimize_bits(q->trace_mini, trace_bits);
        }
 
@@ -1394,7 +1396,7 @@ EXP_ST void setup_shm(void) {
 
   ck_free(shm_str);
 
-  trace_bits = shmat(shm_id, NULL, 0);
+  trace_bits = shmat(shm_id, NULL, 0); //shmat返回的是一个 void* 类型的指针
   
   if (trace_bits == (void *)-1) PFATAL("shmat() failed");
 
@@ -1449,6 +1451,7 @@ static void read_testcases(void) {
      the ordering  of test cases would vary somewhat randomly and would be
      difficult to control. */
 
+
   nl_cnt = scandir(in_dir, &nl, NULL, alphasort);
 
   if (nl_cnt < 0) {
@@ -1472,18 +1475,19 @@ static void read_testcases(void) {
 
   }
 
-  for (i = 0; i < nl_cnt; i++) {
+  for (i = 0; i < nl_cnt; i++) { // n1_cnt是输文件夹中input的个数
 
     struct stat st;
 
-    u8* fn = alloc_printf("%s/%s", in_dir, nl[i]->d_name);
+    //为啥这两个地方都有nl[i]呢？
+    u8* fn = alloc_printf("%s/%s", in_dir, nl[i]->d_name); 
     u8* dfn = alloc_printf("%s/.state/deterministic_done/%s", in_dir, nl[i]->d_name);
 
     u8  passed_det = 0;
 
     free(nl[i]); /* not tracked */
  
-    if (lstat(fn, &st) || access(fn, R_OK))
+    if (lstat(fn, &st) || access(fn, R_OK)) //lstat获取文件信息
       PFATAL("Unable to access '%s'", fn);
 
     /* This also takes care of . and .. */
@@ -2005,7 +2009,7 @@ static void destroy_extras(void) {
 EXP_ST void init_forkserver(char** argv) {
 
   static struct itimerval it;
-  int st_pipe[2], ctl_pipe[2];
+  int st_pipe[2], ctl_pipe[2]; //fuzzer 和 fork server 通信
   int status;
   s32 rlen;
 
@@ -2013,7 +2017,7 @@ EXP_ST void init_forkserver(char** argv) {
 
   if (pipe(st_pipe) || pipe(ctl_pipe)) PFATAL("pipe() failed");
 
-  forksrv_pid = fork();
+  forksrv_pid = fork(); //创建 fork server
 
   if (forksrv_pid < 0) PFATAL("fork() failed");
 
@@ -2138,8 +2142,8 @@ EXP_ST void init_forkserver(char** argv) {
   it.it_value.tv_usec = ((exec_tmout * FORK_WAIT_MULT) % 1000) * 1000;
 
   setitimer(ITIMER_REAL, &it, NULL);
-
-  rlen = read(fsrv_st_fd, &status, 4);
+// 父进程fuzzer 读取状态，如果得到四字节的“hello”消息，说明fork server已经准备就绪
+  rlen = read(fsrv_st_fd, &status, 4); 
 
   it.it_value.tv_sec = 0;
   it.it_value.tv_usec = 0;
@@ -2302,7 +2306,7 @@ static u8 run_target(char** argv, u32 timeout) {
      must prevent any earlier operations from venturing into that
      territory. */
 
-  memset(trace_bits, 0, MAP_SIZE);
+  memset(trace_bits, 0, MAP_SIZE); //将共享内容清零
   MEM_BARRIER();
 
   /* If we're running in "dumb" mode, we can't rely on the fork server
@@ -2393,14 +2397,18 @@ static u8 run_target(char** argv, u32 timeout) {
 
     /* In non-dumb mode, we have the fork server up and running, so simply
        tell it to have at it, and then read back PID. */
+    
+       //在 fork server启动完成之后，一旦需要执行某个测试用例，则fuzzer会调用run_target()方法
+       //在此方法中 ，便是通过命令管道，告诉fork server准备fork，并通过状态管道，获取子进程pid
 
+    //写命令管道
     if ((res = write(fsrv_ctl_fd, &prev_timed_out, 4)) != 4) {
 
       if (stop_soon) return 0;
       RPFATAL(res, "Unable to request new process from fork server (OOM?)");
 
     }
-
+    //读状态管道
     if ((res = read(fsrv_st_fd, &child_pid, 4)) != 4) {
 
       if (stop_soon) return 0;
@@ -2422,13 +2430,13 @@ static u8 run_target(char** argv, u32 timeout) {
   /* The SIGALRM handler simply kills the child_pid and sets child_timed_out. */
 
   if (dumb_mode == 1 || no_forkserver) {
-
+    //wait for process to change state
     if (waitpid(child_pid, &status, 0) <= 0) PFATAL("waitpid() failed");
 
   } else {
 
     s32 res;
-
+    //读取状态管道，获取子进程退出状态
     if ((res = read(fsrv_st_fd, &status, 4)) != 4) {
 
       if (stop_soon) return 0;
@@ -5025,7 +5033,7 @@ static u8 fuzz_one(char** argv) {
 
     /* If we have any favored, non-fuzzed new arrivals in the queue,
        possibly skip to them at the expense of already-fuzzed or non-favored
-       cases. */
+       cases. */  
 
     if ((queue_cur->was_fuzzed || !queue_cur->favored) &&
         UR(100) < SKIP_TO_NEW_PROB) return 1;
@@ -6154,7 +6162,7 @@ havoc_stage:
   /* We essentially just do several thousand runs (depending on perf_score)
      where we take the input file and make random stacked tweaks. */
 
-  for (stage_cur = 0; stage_cur < stage_max; stage_cur++) {
+  for (stage_cur = 0; stage_cur < stage_max; stage_cur++) { // stage_max 与分数有关
 
     u32 use_stacking = 1 << (1 + UR(HAVOC_STACK_POW2));
 
@@ -6168,7 +6176,7 @@ havoc_stage:
 
           /* Flip a single bit somewhere. Spooky! */
 
-          FLIP_BIT(out_buf, UR(temp_len << 3));
+          FLIP_BIT(out_buf, UR(temp_len << 3)); //随机翻转某一位
           break;
 
         case 1: 
@@ -7796,7 +7804,7 @@ int main(int argc, char** argv) {
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
   while ((opt = getopt(argc, argv, "+i:o:f:m:b:t:T:dnCB:S:M:x:QV")) > 0)
-
+// 主要通过 getopt 获取各种环境配置、选项参数等..
     switch (opt) {
 
       case 'i': /* input dir */
@@ -7811,6 +7819,7 @@ int main(int argc, char** argv) {
       case 'o': /* output dir */
 
         if (out_dir) FATAL("Multiple -o options not supported");
+
         out_dir = optarg;
         break;
 
@@ -7988,7 +7997,7 @@ int main(int argc, char** argv) {
 
   if (optind == argc || !in_dir || !out_dir) usage(argv[0]);
 
-  setup_signal_handlers();
+  setup_signal_handlers(); //注册信号处理函数，设置信号句柄
   check_asan_opts();
 
   if (sync_id) fix_up_sync();
@@ -8045,7 +8054,7 @@ int main(int argc, char** argv) {
   init_count_class16();
 
   setup_dirs_fds();
-  read_testcases();
+  read_testcases(); // 读取初始测试集
   load_auto();
 
   pivot_inputs();
@@ -8117,7 +8126,7 @@ int main(int argc, char** argv) {
       /* If we had a full queue cycle with no new finds, try
          recombination strategies next. */
 
-      if (queued_paths == prev_queued) {
+      if (queued_paths == prev_queued) { //如果queue的样本数和之前的一样，说明没有发现新的样本，则对样本进行重组
 
         if (use_splicing) cycles_wo_finds++; else use_splicing = 1;
 
@@ -8130,7 +8139,7 @@ int main(int argc, char** argv) {
 
     }
 
-    skipped_fuzz = fuzz_one(use_argv);
+    skipped_fuzz = fuzz_one(use_argv); // 这是唯一调用fuzz_one的地方
 
     if (!stop_soon && sync_id && !skipped_fuzz) {
       
