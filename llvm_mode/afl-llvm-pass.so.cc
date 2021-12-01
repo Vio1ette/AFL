@@ -67,6 +67,28 @@ namespace {
 }
 
 
+//@@RiskNum
+std::vector<std::string> syscall_routines = {
+    // memory allocation
+    "calloc",  "malloc",   "realloc",  "free",
+    // memory operation
+    "memcpy",  "memmove",  "memchr",   "memset",
+    "memcmp",
+    // string operation
+    "strcpy",  "strncpy",  "strerror", "strlen",
+    "strcat",  "strncat",  "strcmp",   "strspn",
+    "strcoll", "strncmp",  "strxfrm",  "strstr",
+    "strchr",  "strcspn",  "strpbrk",  "strrchr",
+    "strtok",
+    // TODO... add more interesting functions
+};
+bool is_syscal(std::string fn_name) {
+    for (std::vector<std::string>::size_type i = 0; i < syscall_routines.size(); i++) {
+        if (fn_name.compare(0, syscall_routines[i].size(), syscall_routines[i]) == 0)
+            return true;
+    }
+}
+
 char AFLCoverage::ID = 0;
 
 
@@ -77,6 +99,18 @@ bool AFLCoverage::runOnModule(Module &M) {
   IntegerType *Int8Ty  = IntegerType::getInt8Ty(C);
   IntegerType *Int32Ty = IntegerType::getInt32Ty(C);
 
+  //@@RiskNum
+#ifdef __x86_64__
+  IntegerType* LargestType = Int64Ty;
+  ConstantInt* MapCntLoc = ConstantInt::get(LargestType, MAP_SIZE + 8);
+#else
+  IntegerType* LargestType = Int32Ty;
+  ConstantInt* MapCntLoc = ConstantInt::get(LargestType, MAP_SIZE + 4);
+#endif
+    
+  ConstantInt* MapRiskNumLoc = ConstantInt::get(LargestType, MAP_SIZE);
+  ConstantInt* One = ConstantInt::get(LargestType, 1);
+  
   /* Show a banner */
 
   char be_quiet = 0;
@@ -117,11 +151,47 @@ bool AFLCoverage::runOnModule(Module &M) {
 
   for (auto &F : M)
     for (auto &BB : F) {
+        //@@RiskNum
+        int syscall_num = 0;
+        
 
       BasicBlock::iterator IP = BB.getFirstInsertionPt();
       IRBuilder<> IRB(&(*IP));
 
       if (AFL_R(100) >= inst_ratio) continue;
+
+      //@@RiskNum
+      /*遍历基本块中的指令，获取危险函数调用数目*/
+      for (auto Inst = BB.begin(); Inst != BB.end(); Inst++) {
+          Instruction& inst = *Inst;
+
+          // 如果 inst 是 CallInst，那么 dyn_cast 就能成功，否则就会返回空指针
+          if (CallInst* call_inst = dyn_cast<CallInst>(&instt)) {
+              Function* fn = call_inst->getCalledFunction(); //获取被调用的函数
+
+              if (fn == NULL) {
+                  Value* v = call_inst->getCalledValue(); //获取被调用的值
+                  fn = dyn_cast<Function>(v->stripPointerCasts());
+                  if (fn == NULL) {
+                      continue;
+                  }
+              }
+
+              std::string fn_name = fn->getName();
+              if (fn_name.compare(0, 5, "llvm.") == 0) { //过滤 llvm 的函数
+                  continue;
+              }
+
+              if (is_syscal(fn_name)) {
+                  syscall_num++;
+                  outs() << fn_name << "\n";
+              }
+          }
+      }
+      /*获取数目完成*/
+
+
+
 
       /* Make up cur_loc */
 
@@ -156,6 +226,39 @@ bool AFLCoverage::runOnModule(Module &M) {
       StoreInst *Store =
           IRB.CreateStore(ConstantInt::get(Int32Ty, cur_loc >> 1), AFLPrevLoc);
       Store->setMetadata(M.getMDKindID("nosanitize"), MDNode::get(C, None));
+
+      //@@RiskNum
+      if (syscall_num > 0) {
+          ConstantInt* Syscall_num =
+              ConstantInt::get(LargerstType, (unsigned)syscall_num);
+          
+          /* Add risk to shm[MAPSIZE] */
+
+          Value* MapRisk_NumPtr = IRB.CreateBitCast(
+              IRB.CreateGEP(MapPtr, MapRiskNumLoc), LargestType->getPointerTo());
+          
+          LoadInst* MapRisk = IRB.CreateLoad(MapRisk_NumPtr);
+          MapRisk->setMetadata(M.getMDKindID("nosanitize", MDNode::get(C, None));
+
+          //修改+写回
+          Value* IncrRN = IRB.CreateAdd(MapRisk, Syscall_num);
+          IRB.CreateStore(InceRN, MapMapRisk_NumPtr)
+              ->setMetadata(M.getMDKindID("nosanitize", MDNode::get(C, None));
+
+          /* Increase count at shm[MAPSIZE + (4 or 8)] 执行到的基本块计数 */
+          Value* MapCntPtr = IRB.CreateBitCast(
+              IRB.CreateGEP(MapPtr, MapCntLoc), LargestType->getPointerTo()
+          );  //建立一个指针指向：基址+相对偏移
+
+          LoadInst* MapCnt = IRB.CreateLoad(MapCntPtr);
+          MapCnt->->setMetadata(M.getMDKindID("nosanitize", MDNode::get(C, None));
+
+          Value* IncrCnt = IRB.CreateAdd(MapCnt, One); //每次加一
+          IRB.CreateStore(IncrCnt,MapCntPtr)
+              ->setMetadata(M.getMDKindID("nosanitize"), MDNode::get(C, None));
+            
+      }
+
 
       inst_blocks++;
 
