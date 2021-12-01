@@ -66,6 +66,27 @@ namespace {
 
 }
 
+std::vector<std::string> syscall_routines = {
+    // memory allocation
+    "calloc",  "malloc",   "realloc",  "free",
+    // memory operation
+    "memcpy",  "memmove",  "memchr",   "memset",
+    "memcmp",
+    // string operation
+    "strcpy",  "strncpy",  "strerror", "strlen",
+    "strcat",  "strncat",  "strcmp",   "strspn",
+    "strcoll", "strncmp",  "strxfrm",  "strstr",
+    "strchr",  "strcspn",  "strpbrk",  "strrchr",
+    "strtok",
+    // TODO... add more interesting functions
+};
+
+bool is_syscal(std::string fn_name) {
+    for (std::vector<std::string>::size_type i = 0; i < syscall_routines.size(); i++) {
+        if (fn_name.compare(0, syscall_routines[i].size(), syscall_routines[i]) == 0)
+            return true;
+    }
+}
 
 char AFLCoverage::ID = 0;
 
@@ -107,6 +128,10 @@ bool AFLCoverage::runOnModule(Module &M) {
       new GlobalVariable(M, PointerType::get(Int8Ty, 0), false,
                          GlobalValue::ExternalLinkage, 0, "__afl_area_ptr");
 
+  GlobalVariable* AFLSyscallPtr =
+      new GlobalVariable(M, PointerType::get(Int32Ty, 0), false,
+          GlobalValue::ExternalLinkage, 0, "__afl_syscall_ptr");
+
   GlobalVariable *AFLPrevLoc = new GlobalVariable(
       M, Int32Ty, false, GlobalValue::ExternalLinkage, 0, "__afl_prev_loc",
       0, GlobalVariable::GeneralDynamicTLSModel, 0, false);
@@ -118,15 +143,44 @@ bool AFLCoverage::runOnModule(Module &M) {
   for (auto &F : M)
     for (auto &BB : F) {
 
+        int  syscall_num = 0;
+
       BasicBlock::iterator IP = BB.getFirstInsertionPt();
       IRBuilder<> IRB(&(*IP));
 
       if (AFL_R(100) >= inst_ratio) continue;
 
+      //遍历基本块中的指令，获取危险函数调用数目
+      for (auto Inst = BB.begin(); Inst != BB.end(); Inst++) {
+          Instruction& inst = *Inst;
+
+          // 如果 inst 是 CallInst，那么 dyn_cast 就能成功，否则就会返回空指针
+          if (CallInst* call_inst = dyn_cast<CallInst>(&instt)) { 
+              Function* fn = call_inst->getCalledFunction(); //获取被调用的函数
+
+              if (fn == NULL) {
+                  Value* v = call_inst->getCalledValue(); //获取被调用的值
+                  fn = dyn_cast<Function>(v->stripPointerCasts());
+                  if (fn == NULL) {
+                      continue;
+                  }
+              }
+
+              std::string fn_name = fn->getName();
+              if (fn_name.compare(0, 5, "llvm.") == 0) { //过滤 llvm 的函数
+                  continue;
+              }
+
+              if (is_syscal(fn_name)) {
+                  syscall_num++;
+                  outs() << fn_name << "\n";
+              }
+          }
+      }
+
       /* Make up cur_loc */
 
       unsigned int cur_loc = AFL_R(MAP_SIZE); //每次都新创建 cur_loc？怎么处理循环基本块？
-      //如果你要看某条边是不是低频的，难道不是要判断已经存在的边的 ID 吗，看这个 边ID 是否在低频边集合里，每次新创建的话怎么实现 “判断边ID” 啊
 
       ConstantInt *CurLoc = ConstantInt::get(Int32Ty, cur_loc);
 
@@ -150,6 +204,21 @@ bool AFLCoverage::runOnModule(Module &M) {
       Value *Incr = IRB.CreateAdd(Counter, ConstantInt::get(Int8Ty, 1));
       IRB.CreateStore(Incr, MapPtrIdx)
           ->setMetadata(M.getMDKindID("nosanitize"), MDNode::get(C, None));
+
+      // 获得 边[危险函数命中数] 数组
+      if (syscall_num > 0) {
+          LoadInst* SyscallPtr = IRB.CreateLoad(AFLSyscallPtr); //相当于对全局变量指针AFLSyscallPtr的一个解引用
+          SyscallPtr->setMetadata(M.getMDKindID("nosanitize"), MDNode::get(C, None));
+          //如何解释GEP呢？ 当前解释：第一个参数：基址，第二个参数：偏移，返回一个
+          // SyscallPtr[Prev^Cur]
+          Value* SyscallPtrIdx = IRB.CreateGEP(SyscallPtr, IRB.CreateXor(PrevLocCasted, CurLoc));
+          
+          LoadInst* SyscallCounter = IRB.CreateLoad(SyscallPtrIdx); //指针解引用
+          SyscallCounter->setMetadata(M.getMDKindID("nosanitize"), MDNode::get(c, None));
+          Value* SyscallIncr = IRB.CreateAdd(SyscallCounter, ConstantInt::get(Int32Ty, syscall_num));
+          IRB.CreateStore(SyscallIncr, SyscallPtrIdx)
+              ->setMetadata(M.getMDKindId("nosanitize"), MDNode::get(C, Node));
+      }
 
       /* Set prev_loc to cur_loc >> 1 */
 
