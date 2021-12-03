@@ -88,6 +88,7 @@ bool is_syscal(std::string fn_name) {
         if (fn_name.compare(0, syscall_routines[i].size(), syscall_routines[i]) == 0)
             return true;
     }
+    return false;
 }
 
 char AFLCoverage::ID = 0;
@@ -164,24 +165,24 @@ bool AFLCoverage::runOnModule(Module &M) {
           if (AFL_R(100) >= inst_ratio) continue;
 
           //@@RiskNum
-          /*±éÀú»ù±¾¿éÖÐµÄÖ¸Áî£¬»ñÈ¡Î£ÏÕº¯Êýµ÷ÓÃÊýÄ¿*/
+          /*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½Ö¸ï¿½î£¬ï¿½ï¿½È¡Î£ï¿½Õºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿*/
           for (auto Inst = BB.begin(); Inst != BB.end(); Inst++) {
               Instruction& inst = *Inst;
 
-              // Èç¹û inst ÊÇ CallInst£¬ÄÇÃ´ dyn_cast ¾ÍÄÜ³É¹¦£¬·ñÔò¾Í»á·µ»Ø¿ÕÖ¸Õë
+              // ï¿½ï¿½ï¿½ inst ï¿½ï¿½ CallInstï¿½ï¿½ï¿½ï¿½Ã´ dyn_cast ï¿½ï¿½ï¿½Ü³É¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í»á·µï¿½Ø¿ï¿½Ö¸ï¿½ï¿½
               if (CallInst* call_inst = dyn_cast<CallInst>(&inst)) {
-                  Function* fn = call_inst->getCalledFunction(); //»ñÈ¡±»µ÷ÓÃµÄº¯Êý
+                  Function* fn = call_inst->getCalledFunction(); //ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ÃµÄºï¿½ï¿½ï¿½
 
                   if (fn == NULL) {
-                      Value* v = call_inst->getCalledValue(); //»ñÈ¡±»µ÷ÓÃµÄÖµ
+                      Value* v = call_inst->getCalledOperand(); //ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ãµï¿½Öµ
                       fn = dyn_cast<Function>(v->stripPointerCasts());
                       if (fn == NULL) {
                           continue;
                       }
                   }
 
-                  std::string fn_name = fn->getName();
-                  if (fn_name.compare(0, 5, "llvm.") == 0) { //¹ýÂË llvm µÄº¯Êý
+                  std::string fn_name = fn->getName().str();
+                  if (fn_name.compare(0, 5, "llvm.") == 0) { //ï¿½ï¿½ï¿½ï¿½ llvm ï¿½Äºï¿½ï¿½ï¿½
                       continue;
                   }
 
@@ -191,15 +192,15 @@ bool AFLCoverage::runOnModule(Module &M) {
                   }
               }
           }
-          /*»ñÈ¡ÊýÄ¿Íê³É*/
+          /*ï¿½ï¿½È¡ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½*/
 
 
 
 
           /* Make up cur_loc */
 
-          unsigned int cur_loc = AFL_R(MAP_SIZE); //Ã¿´Î¶¼ÐÂ´´½¨ cur_loc£¿ÔõÃ´´¦ÀíÑ­»·»ù±¾¿é£¿
-          //Èç¹ûÄãÒª¿´Ä³Ìõ±ßÊÇ²»ÊÇµÍÆµµÄ£¬ÄÑµÀ²»ÊÇÒªÅÐ¶ÏÒÑ¾­´æÔÚµÄ±ßµÄ ID Âð£¬¿´Õâ¸ö ±ßID ÊÇ·ñÔÚµÍÆµ±ß¼¯ºÏÀï£¬Ã¿´ÎÐÂ´´½¨µÄ»°ÔõÃ´ÊµÏÖ ¡°ÅÐ¶Ï±ßID¡± °¡
+          unsigned int cur_loc = AFL_R(MAP_SIZE); //Ã¿ï¿½Î¶ï¿½ï¿½Â´ï¿½ï¿½ï¿½ cur_locï¿½ï¿½ï¿½ï¿½Ã´ï¿½ï¿½ï¿½ï¿½Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é£¿
+          //ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½Ä³ï¿½ï¿½ï¿½ï¿½ï¿½Ç²ï¿½ï¿½Çµï¿½Æµï¿½Ä£ï¿½ï¿½Ñµï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½Ð¶ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ÚµÄ±ßµï¿½ ID ï¿½ð£¬¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ID ï¿½Ç·ï¿½ï¿½Úµï¿½Æµï¿½ß¼ï¿½ï¿½ï¿½ï¿½ï£¬Ã¿ï¿½ï¿½ï¿½Â´ï¿½ï¿½ï¿½ï¿½Ä»ï¿½ï¿½ï¿½Ã´Êµï¿½ï¿½ ï¿½ï¿½ï¿½Ð¶Ï±ï¿½IDï¿½ï¿½ ï¿½ï¿½
 
           ConstantInt* CurLoc = ConstantInt::get(Int32Ty, cur_loc);
 
@@ -243,20 +244,20 @@ bool AFLCoverage::runOnModule(Module &M) {
               LoadInst* MapRisk = IRB.CreateLoad(MapRisk_NumPtr);
               MapRisk->setMetadata(M.getMDKindID("nosanitize"), MDNode::get(C, None));
 
-              //ÐÞ¸Ä+Ð´»Ø
+              //ï¿½Þ¸ï¿½+Ð´ï¿½ï¿½
               Value* IncrRN = IRB.CreateAdd(MapRisk, Syscall_num);
-              IRB.CreateStore(InceRN, MapMapRisk_NumPtr)
+              IRB.CreateStore(IncrRN, MapRisk_NumPtr)
                   ->setMetadata(M.getMDKindID("nosanitize"), MDNode::get(C, None));
 
-              /* Increase count at shm[MAPSIZE + (4 or 8)] Ö´ÐÐµ½µÄ»ù±¾¿é¼ÆÊý */
+              /* Increase count at shm[MAPSIZE + (4 or 8)] Ö´ï¿½Ðµï¿½ï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
               Value* MapCntPtr = IRB.CreateBitCast(
                   IRB.CreateGEP(MapPtr, MapCntLoc), LargestType->getPointerTo()
-              );  //½¨Á¢Ò»¸öÖ¸ÕëÖ¸Ïò£º»ùÖ·+Ïà¶ÔÆ«ÒÆ
+              );  //ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ö¸ï¿½ï¿½Ö¸ï¿½ò£º»ï¿½Ö·+ï¿½ï¿½ï¿½Æ«ï¿½ï¿½
 
               LoadInst* MapCnt = IRB.CreateLoad(MapCntPtr);
-              MapCnt->->setMetadata(M.getMDKindID("nosanitize"), MDNode::get(C, None));
+              MapCnt->setMetadata(M.getMDKindID("nosanitize"), MDNode::get(C, None));
 
-              Value* IncrCnt = IRB.CreateAdd(MapCnt, One); //Ã¿´Î¼ÓÒ»
+              Value* IncrCnt = IRB.CreateAdd(MapCnt, One); //Ã¿ï¿½Î¼ï¿½Ò»
               IRB.CreateStore(IncrCnt, MapCntPtr)
                   ->setMetadata(M.getMDKindID("nosanitize"), MDNode::get(C, None));
 
