@@ -165,16 +165,16 @@ bool AFLCoverage::runOnModule(Module &M) {
           if (AFL_R(100) >= inst_ratio) continue;
 
           //@@RiskNum
-          /*�����������е�ָ���ȡΣ�պ���������Ŀ*/
+          /*To traverse Instructions in each block*/
           for (auto Inst = BB.begin(); Inst != BB.end(); Inst++) {
               Instruction& inst = *Inst;
 
-              // ��� inst �� CallInst����ô dyn_cast ���ܳɹ�������ͻ᷵�ؿ�ָ��
+              // only if inst is CallInst can dyn_cast sucess. otherwise dyn_cast will return nullptr 
               if (CallInst* call_inst = dyn_cast<CallInst>(&inst)) {
-                  Function* fn = call_inst->getCalledFunction(); //��ȡ�����õĺ���
+                  Function* fn = call_inst->getCalledFunction(); //get the called funciton
 
                   if (fn == NULL) {
-                      Value* v = call_inst->getCalledOperand(); //��ȡ�����õ�ֵ
+                      Value* v = call_inst->getCalledOperand(); //get the called value
                       fn = dyn_cast<Function>(v->stripPointerCasts());
                       if (fn == NULL) {
                           continue;
@@ -182,7 +182,7 @@ bool AFLCoverage::runOnModule(Module &M) {
                   }
 
                   std::string fn_name = fn->getName().str();
-                  if (fn_name.compare(0, 5, "llvm.") == 0) { //���� llvm �ĺ���
+                  if (fn_name.compare(0, 5, "llvm.") == 0) { //filter function w.r.t llvm
                       continue;
                   }
 
@@ -192,15 +192,14 @@ bool AFLCoverage::runOnModule(Module &M) {
                   }
               }
           }
-          /*��ȡ��Ŀ���*/
+          /* Get RiskNum finished */
 
 
 
 
           /* Make up cur_loc */
 
-          unsigned int cur_loc = AFL_R(MAP_SIZE); //ÿ�ζ��´��� cur_loc����ô����ѭ�������飿
-          //�����Ҫ��ĳ�����ǲ��ǵ�Ƶ�ģ��ѵ�����Ҫ�ж��Ѿ����ڵıߵ� ID �𣬿���� ��ID �Ƿ��ڵ�Ƶ�߼����ÿ���´����Ļ���ôʵ�� ���жϱ�ID�� ��
+          unsigned int cur_loc = AFL_R(MAP_SIZE); // generate a new cur_loc  
 
           ConstantInt* CurLoc = ConstantInt::get(Int32Ty, cur_loc);
 
@@ -244,20 +243,20 @@ bool AFLCoverage::runOnModule(Module &M) {
               LoadInst* MapRisk = IRB.CreateLoad(MapRisk_NumPtr);
               MapRisk->setMetadata(M.getMDKindID("nosanitize"), MDNode::get(C, None));
 
-              //�޸�+д��
+              // modify + write back
               Value* IncrRN = IRB.CreateAdd(MapRisk, Syscall_num);
               IRB.CreateStore(IncrRN, MapRisk_NumPtr)
                   ->setMetadata(M.getMDKindID("nosanitize"), MDNode::get(C, None));
 
-              /* Increase count at shm[MAPSIZE + (4 or 8)] ִ�е��Ļ�������� */
+              /* Increase count at shm[MAPSIZE + (4 or 8)], count the number of block that have been met */
               Value* MapCntPtr = IRB.CreateBitCast(
                   IRB.CreateGEP(MapPtr, MapCntLoc), LargestType->getPointerTo()
-              );  //����һ��ָ��ָ�򣺻�ַ+���ƫ��
+              );  //create a pointer that point to: Base + Offset
 
               LoadInst* MapCnt = IRB.CreateLoad(MapCntPtr);
               MapCnt->setMetadata(M.getMDKindID("nosanitize"), MDNode::get(C, None));
 
-              Value* IncrCnt = IRB.CreateAdd(MapCnt, One); //ÿ�μ�һ
+              Value* IncrCnt = IRB.CreateAdd(MapCnt, One); // add 1 at a time
               IRB.CreateStore(IncrCnt, MapCntPtr)
                   ->setMetadata(M.getMDKindID("nosanitize"), MDNode::get(C, None));
 
