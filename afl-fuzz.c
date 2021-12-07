@@ -258,6 +258,8 @@ struct queue_entry {
   u64 exec_us,                        /* Execution time (us)              */
       handicap,                       /* Number of queue cycles behind    */
       depth;                          /* Path depth                       */
+  //@@RiskNum
+  double RiskNum;                     /* Risk number */
 
   u8* trace_mini;                     /* Trace bytes, if kept             */
   u32 tc_ref;                         /* Trace bytes ref count            */
@@ -286,6 +288,11 @@ static u32 extras_cnt;                /* Total number of tokens read      */
 
 static struct extra_data* a_extras;   /* Automatically selected extras    */
 static u32 a_extras_cnt;              /* Total number of tokens available */
+
+//@@RiskNum
+static double cur_Risk_Num = 0;  /* the number of risk funciton on current seed's path*/
+
+
 
 static u8* (*post_handler)(u8* buf, u32* len);
 
@@ -906,21 +913,36 @@ EXP_ST void read_bitmap(u8* fname) {
 
 static inline u8 has_new_bits(u8* virgin_map) {
 
-#ifdef WORD_SIZE_64
+//@@RiskNum
+#ifdef __x86_64__
 
   u64* current = (u64*)trace_bits; //一次操作8个字节，一个字节表示一个分支
   u64* virgin  = (u64*)virgin_map;
 
   u32  i = (MAP_SIZE >> 3);
-
+  
+  //@@RiskNum
+  /* Calculate RiskNum of current input to targets */
+  u64* total_Risk_Num = (u64*)(trace_bits + MAP_SIZE); // operate 8 bytes at a time 
+  cur_Risk_Num = (double) total_Risk_Num;
 #else
 
   u32* current = (u32*)trace_bits; //原来是u8*，转换为u32*，想一次操作4个字节
   u32* virgin  = (u32*)virgin_map;
 
   u32  i = (MAP_SIZE >> 2);
+  
+  //@@RiskNum
+  /* Calculate RiskNum of current input to targets */
+  u32* total_Risk_Num = (u32*)(trace_bits + MAP_SIZE); // operate 4 bytes at a time 
+  cur_Risk_Num = (double)total_Risk_Num;
 
-#endif /* ^WORD_SIZE_64 */
+#endif /* __x86_64__ */
+
+
+  //@@RiskNum
+  //TEST, print cur_Risk_Num
+  std::cout << "cur_Risk_num TEST: " << cur_Risk_Num << "【-】" << std::endl;
 
   u8   ret = 0;
 
@@ -940,7 +962,7 @@ static inline u8 has_new_bits(u8* virgin_map) {
         /* Looks like we have not found any new bytes yet; see if any non-zero
            bytes in current[] are pristine in virgin[]. */
 
-#ifdef WORD_SIZE_64
+#ifdef __x86_64__
 
         if ((cur[0] && vir[0] == 0xff) || (cur[1] && vir[1] == 0xff) ||
             (cur[2] && vir[2] == 0xff) || (cur[3] && vir[3] == 0xff) ||
@@ -954,7 +976,7 @@ static inline u8 has_new_bits(u8* virgin_map) {
             (cur[2] && vir[2] == 0xff) || (cur[3] && vir[3] == 0xff)) ret = 2;
         else ret = 1;
 
-#endif /* ^WORD_SIZE_64 */
+#endif /* __x86_64__ */
 
       }
 
@@ -1395,7 +1417,8 @@ EXP_ST void setup_shm(void) {
   if (!dumb_mode) setenv(SHM_ENV_VAR, shm_str, 1);
 
   ck_free(shm_str);
-
+  
+  //这里是把共享内存中的所有内容一下子都读了出来？
   trace_bits = shmat(shm_id, NULL, 0); //shmat返回的是一个 void* 类型的指针
   
   if (trace_bits == (void *)-1) PFATAL("shmat() failed");
@@ -2640,6 +2663,13 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
     }
 
     cksum = hash32(trace_bits, MAP_SIZE, HASH_CONST);
+
+    //@@RiskNum
+    if (q->RiskNum == 0) {
+        has_new_bits(virgin_bits); /* calculate cur_Risk_Num */
+        q->RiskNum = cur_Risk_Num;
+    }
+    
 
     if (q->exec_cksum != cksum) {
 

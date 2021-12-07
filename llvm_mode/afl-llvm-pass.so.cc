@@ -106,10 +106,10 @@ bool AFLCoverage::runOnModule(Module &M) {
   //@@RiskNum
 #ifdef __x86_64__
   IntegerType* LargestType = Int64Ty;
-  ConstantInt* MapCntLoc = ConstantInt::get(LargestType, MAP_SIZE + 8);
+  //ConstantInt* MapCntLoc = ConstantInt::get(LargestType, MAP_SIZE + 8); Based on your 
 #else
   IntegerType* LargestType = Int32Ty;
-  ConstantInt* MapCntLoc = ConstantInt::get(LargestType, MAP_SIZE + 4);
+  //ConstantInt* MapCntLoc = ConstantInt::get(LargestType, MAP_SIZE + 4);
 #endif
     
   ConstantInt* MapRiskNumLoc = ConstantInt::get(LargestType, MAP_SIZE);
@@ -188,7 +188,7 @@ bool AFLCoverage::runOnModule(Module &M) {
 
                   if (is_syscal(fn_name)) {
                       syscall_num++;
-                      outs() << fn_name << "\n";
+                      //outs() << fn_name << "\n";
                   }
               }
           }
@@ -248,17 +248,23 @@ bool AFLCoverage::runOnModule(Module &M) {
               IRB.CreateStore(IncrRN, MapRisk_NumPtr)
                   ->setMetadata(M.getMDKindID("nosanitize"), MDNode::get(C, None));
 
-              /* Increase count at shm[MAPSIZE + (4 or 8)], count the number of block that have been met */
-              Value* MapCntPtr = IRB.CreateBitCast(
-                  IRB.CreateGEP(MapPtr, MapCntLoc), LargestType->getPointerTo()
-              );  //create a pointer that point to: Base + Offset
+              
+              
+              // Actually, you don't need this!
 
-              LoadInst* MapCnt = IRB.CreateLoad(MapCntPtr);
-              MapCnt->setMetadata(M.getMDKindID("nosanitize"), MDNode::get(C, None));
+              
+              
+              /* Increase count at shm[MAPSIZE + (4 or 8)], count the number of block that have been met */   
+              //Value* MapCntPtr = IRB.CreateBitCast(
+              //    IRB.CreateGEP(MapPtr, MapCntLoc), LargestType->getPointerTo()
+              //);  //create a pointer that point to: Base + Offset
 
-              Value* IncrCnt = IRB.CreateAdd(MapCnt, One); // add 1 at a time
-              IRB.CreateStore(IncrCnt, MapCntPtr)
-                  ->setMetadata(M.getMDKindID("nosanitize"), MDNode::get(C, None));
+              //LoadInst* MapCnt = IRB.CreateLoad(MapCntPtr);
+              //MapCnt->setMetadata(M.getMDKindID("nosanitize"), MDNode::get(C, None));
+
+              //Value* IncrCnt = IRB.CreateAdd(MapCnt, One); // add 1 at a time
+              //IRB.CreateStore(IncrCnt, MapCntPtr)
+              //    ->setMetadata(M.getMDKindID("nosanitize"), MDNode::get(C, None));
 
           }
 
