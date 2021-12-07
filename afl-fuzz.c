@@ -924,7 +924,7 @@ static inline u8 has_new_bits(u8* virgin_map) {
   //@@RiskNum
   /* Calculate RiskNum of current input to targets */
   u64* total_Risk_Num = (u64*)(trace_bits + MAP_SIZE); // operate 8 bytes at a time 
-  cur_Risk_Num = (double) total_Risk_Num;
+  cur_Risk_Num = (double) (*total_Risk_Num);
 #else
 
   u32* current = (u32*)trace_bits; //原来是u8*，转换为u32*，想一次操作4个字节
@@ -935,14 +935,14 @@ static inline u8 has_new_bits(u8* virgin_map) {
   //@@RiskNum
   /* Calculate RiskNum of current input to targets */
   u32* total_Risk_Num = (u32*)(trace_bits + MAP_SIZE); // operate 4 bytes at a time 
-  cur_Risk_Num = (double)total_Risk_Num;
+  cur_Risk_Num = (double)(*total_Risk_Num);
 
 #endif /* __x86_64__ */
 
 
   //@@RiskNum
   //TEST, print cur_Risk_Num
-  std::cout << "cur_Risk_num TEST: " << cur_Risk_Num << "【-】" << std::endl;
+  printf("cur_Risk_num TEST: %d 【+】\n", cur_Risk_Num);
 
   u8   ret = 0;
 
