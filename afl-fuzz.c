@@ -914,7 +914,7 @@ EXP_ST void read_bitmap(u8* fname) {
 static inline u8 has_new_bits(u8* virgin_map) {
 
 //@@RiskNum
-#ifdef __x86_64__
+#ifdef WORD_SIZE_64
 
   u64* current = (u64*)trace_bits; //一次操作8个字节，一个字节表示一个分支
   u64* virgin  = (u64*)virgin_map;
@@ -937,7 +937,7 @@ static inline u8 has_new_bits(u8* virgin_map) {
   u32* total_Risk_Num = (u32*)(trace_bits + MAP_SIZE); // operate 4 bytes at a time 
   cur_Risk_Num = (double)(*total_Risk_Num);
 
-#endif /* __x86_64__ */
+#endif /* WORD_SIZE_64 */
 
 
   //@@RiskNum
@@ -952,7 +952,7 @@ static inline u8 has_new_bits(u8* virgin_map) {
        that have not been already cleared from the virgin map - since this will
        almost always be the case. */
 
-    if (unlikely(*current) && unlikely(*current & *virgin)) { // 
+    if (unlikely(*current) && unlikely(*current & *virgin)) {
 
       if (likely(ret < 2)) {
 
@@ -962,7 +962,7 @@ static inline u8 has_new_bits(u8* virgin_map) {
         /* Looks like we have not found any new bytes yet; see if any non-zero
            bytes in current[] are pristine in virgin[]. */
 
-#ifdef __x86_64__
+#ifdef WORD_SIZE_64
 
         if ((cur[0] && vir[0] == 0xff) || (cur[1] && vir[1] == 0xff) ||
             (cur[2] && vir[2] == 0xff) || (cur[3] && vir[3] == 0xff) ||
@@ -976,7 +976,7 @@ static inline u8 has_new_bits(u8* virgin_map) {
             (cur[2] && vir[2] == 0xff) || (cur[3] && vir[3] == 0xff)) ret = 2;
         else ret = 1;
 
-#endif /* __x86_64__ */
+#endif /* WORD_SIZE_64 */
 
       }
 

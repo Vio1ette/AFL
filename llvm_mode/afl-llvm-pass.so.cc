@@ -104,7 +104,7 @@ bool AFLCoverage::runOnModule(Module &M) {
 
 
   //@@RiskNum
-#ifdef __x86_64__
+#ifdef WORD_SIZE_64
   IntegerType* LargestType = Int64Ty;
   //ConstantInt* MapCntLoc = ConstantInt::get(LargestType, MAP_SIZE + 8); Based on your 
 #else
