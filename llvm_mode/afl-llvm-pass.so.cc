@@ -231,7 +231,7 @@ bool AFLCoverage::runOnModule(Module &M) {
           Store->setMetadata(M.getMDKindID("nosanitize"), MDNode::get(C, None));
 
           //@@RiskNum
-          if (syscall_num > 0) {
+          if (syscall_num >= 0) {
               ConstantInt* Syscall_num =
                   ConstantInt::get(LargestType, (unsigned)syscall_num);
 
