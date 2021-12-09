@@ -2329,8 +2329,9 @@ static u8 run_target(char** argv, u32 timeout) {
   /* After this memset, trace_bits[] are effectively volatile, so we
      must prevent any earlier operations from venturing into that
      territory. */
-
-  memset(trace_bits, 0, MAP_SIZE); //将共享内容清零
+  
+  //@@RiskNum
+  memset(trace_bits, 0, MAP_SIZE + 8); //将共享内容清零
   MEM_BARRIER();
 
   /* If we're running in "dumb" mode, we can't rely on the fork server
