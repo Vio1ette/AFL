@@ -3195,6 +3195,19 @@ static void write_crash_readme(void) {
 
 }
 
+/*
+@@RiskNum
+increment hit bits by 1 for every element of trace_bits that has been hit.
+effectively counts that one input has hit each element of trace_bits
+*/
+
+static void increment_hit_bits() {
+    for (int i = 0; i < MAP_SIZE; i++) {
+        if ((trace_bits[i] > 0) && (hit_bits[i] < ULONG_MX))
+            hit_bits[i]++;
+    }
+}
+
 
 /* Check if the result of an execve() during routine fuzzing is interesting,
    save or queue the input test case for further analysis if so. Returns 1 if
