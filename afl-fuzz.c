@@ -853,7 +853,7 @@ static int contains_id(int branch_id, int* branch_ids) {
 /* already have the global hit_counts, utilize it to get the low_frequent_branch_ids */
 static int* get_low_frequent_branch_ids() {
     int* low_fre_branch_ids = ck_alloc(sizeof(int) * MAX_LOW_BRANCHES);
-    int lowest_hob = INT_MAX;
+    int lowest_hob = INT_MAX; // lowest low fre, up threshold based on it
     int ret_list_size = 0;
     
     for (int i = 0; (i < MAP_SIZE) && (ret_list_size < MAX_LOW_BRANCHES - 1); i++) {
@@ -874,6 +874,8 @@ static int* get_low_frequent_branch_ids() {
             }
         }
     }
+
+    // all edges aren't low fre branch. and upp max exp to enhance low fre threshold
 
     // There's no low_fre branch, try to add one to low_fre_threshold 
     if (ret_list_size == 0) {
@@ -5231,14 +5233,14 @@ static u8 fuzz_one(char** argv) {
 #endif /* ^IGNORE_FINDS */
 
   //@@LowFre
- /* int cur_low_fre_num = getNum_low_fre_branch(trace_bits);
-  printf("%d!!\n",cur_low_fre_num);*/
+  int cur_low_fre_num = getNum_low_fre_branch(trace_bits);
+  printf("%d!!\n",cur_low_fre_num);
 
-  for (int i = 0; i < MAP_SIZE; i++) {
-      if (hit_bits[i] > 0) {
-        printf("%d branch hit Num: %d \n", i, hit_bits[i]);
-      }
-  }
+  //for (int i = 0; i < MAP_SIZE; i++) {
+  //    if (hit_bits[i] > 0) {
+  //      printf("%d branch hit Num: %d \n", i, hit_bits[i]);
+  //    }
+  //}
 
   if (not_on_tty) {
     ACTF("Fuzzing test case #%u (%u total, %llu uniq crashes found)...",
