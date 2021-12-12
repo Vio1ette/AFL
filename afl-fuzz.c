@@ -5234,8 +5234,10 @@ static u8 fuzz_one(char** argv) {
  /* int cur_low_fre_num = getNum_low_fre_branch(trace_bits);
   printf("%d!!\n",cur_low_fre_num);*/
 
-  for (int i = 0; i < 3; i++) {
-      printf("%d branch hit Num: %d \n", i, hit_bits[i]);
+  for (int i = 0; i < MAP_SIZE; i++) {
+      if (hit_bits[i] > 0) {
+        printf("%d branch hit Num: %d \n", i, hit_bits[i]);
+      }
   }
 
   if (not_on_tty) {
