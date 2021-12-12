@@ -366,6 +366,19 @@ void fileonly(char const* fmt, ...) {
 }
 
 
+//@@Low_Fre
+/* at the end of execution, dump the number of inputs hitting each branch to log */
+static void dump_to_logs() {
+    s32 branch_hit_fd = -1;
+    u8* fn = alloc_printf("%s/branch-hits.bin", out_dir);
+    unlink(fn); /* Ignore errors */
+    branch_hit_fd = open(fn, O_CREAT | O_WRONLY | O_TRUNC, 0600);
+    if (branch_hit_fd < 0) PFATAL("Unable to create '%s'", fn);
+    ck_write(branch_hit_fd, hit_bits, sizeof(u64) * MAP_SIZE, fn);
+    ck_free(fn);
+    close(branch_hit_fd);
+}
+
 /* Get unix time in milliseconds */
 
 static u64 get_cur_time(void) {
@@ -5218,8 +5231,12 @@ static u8 fuzz_one(char** argv) {
 #endif /* ^IGNORE_FINDS */
 
   //@@LowFre
-  int cur_low_fre_num = getNum_low_fre_branch(trace_bits);
-  printf("%d!!\n",cur_low_fre_num);
+ /* int cur_low_fre_num = getNum_low_fre_branch(trace_bits);
+  printf("%d!!\n",cur_low_fre_num);*/
+
+  for (int i = 0; i < 3; i++) {
+      printf("%d branch hit Num: %d \n", i, hit_bits[i]);
+  }
 
   if (not_on_tty) {
     ACTF("Fuzzing test case #%u (%u total, %llu uniq crashes found)...",
@@ -8216,6 +8233,12 @@ int main(int argc, char** argv) {
   setup_shm();
   init_count_class16();
 
+  //@@LowFre
+  memset(hit_bits, 0, sizeof(hit_bits));
+  if (in_place_resume) {
+      init_hit_bits();
+  }
+
   setup_dirs_fds();
   read_testcases(); // ¶ÁÈ¡³õÊ¼²âÊÔ¼¯
   load_auto();
@@ -8351,7 +8374,9 @@ stop_fuzzing:
            "    (For info on resuming, see %s/README.)\n", doc_path);
 
   }
-
+  
+  //@@Low_Fre
+  dump_to_logs();
   fclose(plot_file);
   destroy_queue();
   destroy_extras();
