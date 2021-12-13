@@ -2828,7 +2828,7 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
       hnb = has_new_bits(virgin_bits);
       if (hnb > new_bits) new_bits = hnb;
       //@@
-      printf("new_bits = hnb\n");
+      printf("new_bits = hnb, hnb= %d\n",hnb);
       if (q->exec_cksum) {
 
         u32 i;
