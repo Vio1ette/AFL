@@ -932,13 +932,13 @@ static void add_to_queue(u8* fname, u32 len, u8 passed_det) {
   q->fname        = fname;
   q->len          = len;
   q->depth        = cur_depth + 1;
-  q->passed_det   = passed_det; //ÊÇ·ñÒÑ¾­Íê³É deterministic ±äÒì½×¶ÎÁË
+  q->passed_det   = passed_det; //ï¿½Ç·ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ deterministic ï¿½ï¿½ï¿½ï¿½×¶ï¿½ï¿½ï¿½
 
   if (q->depth > max_depth) max_depth = q->depth;
 
   if (queue_top) {
 
-    queue_top->next = q; //queue_top Ö¸Ïò¸Õ±»¼Ó½øÈ¥µÄÔªËØ°¡£¬ÊÇºó½øµÄ°¡£¬Èç¹ûpop()»á³öµôÕâ¸öµÄ»°£¬Æñ²»ÊÇ±ä³ÉÁËºó½øÏÈ³ö£¿
+    queue_top->next = q; //queue_top Ö¸ï¿½ï¿½Õ±ï¿½ï¿½Ó½ï¿½È¥ï¿½ï¿½Ôªï¿½Ø°ï¿½ï¿½ï¿½ï¿½Çºï¿½ï¿½ï¿½Ä°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½pop()ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç±ï¿½ï¿½ï¿½Ëºï¿½ï¿½ï¿½È³ï¿½ï¿½ï¿½
     queue_top = q;
 
   } else q_prev100 = queue = queue_top = q;
@@ -1033,7 +1033,7 @@ static inline u8 has_new_bits(u8* virgin_map) {
 //@@RiskNum
 #ifdef WORD_SIZE_64
 
-  u64* current = (u64*)trace_bits; //Ò»´Î²Ù×÷8¸ö×Ö½Ú£¬Ò»¸ö×Ö½Ú±íÊ¾Ò»¸ö·ÖÖ§
+  u64* current = (u64*)trace_bits; 
   u64* virgin  = (u64*)virgin_map;
 
   u32  i = (MAP_SIZE >> 3);
@@ -1044,7 +1044,7 @@ static inline u8 has_new_bits(u8* virgin_map) {
   cur_Risk_Num = (double) (*total_Risk_Num);
 #else
 
-  u32* current = (u32*)trace_bits; //Ô­À´ÊÇu8*£¬×ª»»Îªu32*£¬ÏëÒ»´Î²Ù×÷4¸ö×Ö½Ú
+  u32* current = (u32*)trace_bits; 
   u32* virgin  = (u32*)virgin_map;
 
   u32  i = (MAP_SIZE >> 2);
@@ -1059,7 +1059,7 @@ static inline u8 has_new_bits(u8* virgin_map) {
 
   //@@RiskNum
   //TEST, print cur_Risk_Num
-  //printf("cur_Risk_num TEST: %d ¡¾+¡¿\n", cur_Risk_Num);
+  //printf("cur_Risk_num TEST: %d ï¿½ï¿½+ï¿½ï¿½\n", cur_Risk_Num);
 
   u8   ret = 0;
 
@@ -1083,7 +1083,7 @@ static inline u8 has_new_bits(u8* virgin_map) {
         if ((cur[0] && vir[0] == 0xff) || (cur[1] && vir[1] == 0xff) ||
             (cur[2] && vir[2] == 0xff) || (cur[3] && vir[3] == 0xff) ||
             (cur[4] && vir[4] == 0xff) || (cur[5] && vir[5] == 0xff) ||
-            (cur[6] && vir[6] == 0xff) || (cur[7] && vir[7] == 0xff)) ret = 2; //Ò»´ÎÅÐ¶Ï8¸ö·ÖÖ§
+            (cur[6] && vir[6] == 0xff) || (cur[7] && vir[7] == 0xff)) ret = 2; //Ò»ï¿½ï¿½ï¿½Ð¶ï¿½8ï¿½ï¿½ï¿½ï¿½Ö§
         else ret = 1;
 
 #else
@@ -1096,15 +1096,14 @@ static inline u8 has_new_bits(u8* virgin_map) {
 
       }
 
-      *virgin &= ~*current; //¡¾?¡¿Èç¹ûÃ»ÓÐ·¢ÏÖÐÂ·ÖÖ§£¬ÄÇÃ´Õâ¾ä»¹ÓÐÒâÒåÂð
+      *virgin &= ~*current; 
 
     }
 
-    current++; //Ò»´Î¼Ó 8 byte£¬¼´Ìø¹ý 8 ¸ö·ÖÖ§
+    current++; 
     virgin++;
 
   }
-  printf("ret: %d\n", ret);
   if (ret && virgin_map == virgin_bits) bitmap_changed = 1;
 
   return ret;
@@ -1451,8 +1450,8 @@ static void update_bitmap_score(struct queue_entry* q) {
 
        if (!q->trace_mini) {
          q->trace_mini = ck_alloc(MAP_SIZE >> 3); 
-         // ¿¼ÂÇÒ»ÏÂÕâÀïÎªÊ²Ã´ÒªÓÃ MAP_SIZE >> 3£¬ÎÒ¾õµÃÔ­Òò¾ÍÊÇÔ­À´Ò»Ìõ±ßµÄÖ´ÐÐ´ÎÊýÐèÒªÓÃÒ»¸ö×Ö½ÚÀ´´æ
-         // ¶ø trace_mini ²»´æ´ÎÊý£¬Ö»´æ¸²¸ÇÃ»ÓÐ£¬Ö»ÐèÒªÒ»¸öÎ»¾Í¿ÉÒÔ±íÊ¾Ò»Ìõ±ßµÄ¸²¸ÇÇé¿ö
+         // ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎªÊ²Ã´Òªï¿½ï¿½ MAP_SIZE >> 3ï¿½ï¿½ï¿½Ò¾ï¿½ï¿½ï¿½Ô­ï¿½ï¿½ï¿½ï¿½ï¿½Ô­ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ßµï¿½Ö´ï¿½Ð´ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ö½ï¿½ï¿½ï¿½ï¿½ï¿½
+         // ï¿½ï¿½ trace_mini ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö»ï¿½æ¸²ï¿½ï¿½Ã»ï¿½Ð£ï¿½Ö»ï¿½ï¿½ÒªÒ»ï¿½ï¿½Î»ï¿½Í¿ï¿½ï¿½Ô±ï¿½Ê¾Ò»ï¿½ï¿½ï¿½ßµÄ¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
          minimize_bits(q->trace_mini, trace_bits);
        }
 
@@ -1551,8 +1550,8 @@ EXP_ST void setup_shm(void) {
 
   ck_free(shm_str);
   
-  //ÕâÀïÊÇ°Ñ¹²ÏíÄÚ´æÖÐµÄËùÓÐÄÚÈÝÒ»ÏÂ×Ó¶¼¶ÁÁË³öÀ´£¿
-  trace_bits = shmat(shm_id, NULL, 0); //shmat·µ»ØµÄÊÇÒ»¸ö void* ÀàÐÍµÄÖ¸Õë
+  //ï¿½ï¿½ï¿½ï¿½ï¿½Ç°Ñ¹ï¿½ï¿½ï¿½ï¿½Ú´ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ó¶ï¿½ï¿½ï¿½ï¿½Ë³ï¿½ï¿½ï¿½ï¿½ï¿½
+  trace_bits = shmat(shm_id, NULL, 0); //shmatï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½Ò»ï¿½ï¿½ void* ï¿½ï¿½ï¿½Íµï¿½Ö¸ï¿½ï¿½
   
   if (trace_bits == (void *)-1) PFATAL("shmat() failed");
 
@@ -1631,11 +1630,11 @@ static void read_testcases(void) {
 
   }
 
-  for (i = 0; i < nl_cnt; i++) { // n1_cntÊÇÊäÎÄ¼þ¼ÐÖÐinputµÄ¸öÊý
+  for (i = 0; i < nl_cnt; i++) { // n1_cntï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½inputï¿½Ä¸ï¿½ï¿½ï¿½
 
     struct stat st;
 
-    //ÎªÉ¶ÕâÁ½¸öµØ·½¶¼ÓÐnl[i]ÄØ£¿
+    //ÎªÉ¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø·ï¿½ï¿½ï¿½ï¿½ï¿½nl[i]ï¿½Ø£ï¿½
     u8* fn = alloc_printf("%s/%s", in_dir, nl[i]->d_name); 
     u8* dfn = alloc_printf("%s/.state/deterministic_done/%s", in_dir, nl[i]->d_name);
 
@@ -1643,7 +1642,7 @@ static void read_testcases(void) {
 
     free(nl[i]); /* not tracked */
  
-    if (lstat(fn, &st) || access(fn, R_OK)) //lstat»ñÈ¡ÎÄ¼þÐÅÏ¢
+    if (lstat(fn, &st) || access(fn, R_OK)) //lstatï¿½ï¿½È¡ï¿½Ä¼ï¿½ï¿½ï¿½Ï¢
       PFATAL("Unable to access '%s'", fn);
 
     /* This also takes care of . and .. */
@@ -2165,7 +2164,7 @@ static void destroy_extras(void) {
 EXP_ST void init_forkserver(char** argv) {
 
   static struct itimerval it;
-  int st_pipe[2], ctl_pipe[2]; //fuzzer ºÍ fork server Í¨ÐÅ
+  int st_pipe[2], ctl_pipe[2]; //fuzzer ï¿½ï¿½ fork server Í¨ï¿½ï¿½
   int status;
   s32 rlen;
 
@@ -2173,7 +2172,7 @@ EXP_ST void init_forkserver(char** argv) {
 
   if (pipe(st_pipe) || pipe(ctl_pipe)) PFATAL("pipe() failed");
 
-  forksrv_pid = fork(); //´´½¨ fork server
+  forksrv_pid = fork(); //ï¿½ï¿½ï¿½ï¿½ fork server
 
   if (forksrv_pid < 0) PFATAL("fork() failed");
 
@@ -2298,7 +2297,7 @@ EXP_ST void init_forkserver(char** argv) {
   it.it_value.tv_usec = ((exec_tmout * FORK_WAIT_MULT) % 1000) * 1000;
 
   setitimer(ITIMER_REAL, &it, NULL);
-// ¸¸½ø³Ìfuzzer ¶ÁÈ¡×´Ì¬£¬Èç¹ûµÃµ½ËÄ×Ö½ÚµÄ¡°hello¡±ÏûÏ¢£¬ËµÃ÷fork serverÒÑ¾­×¼±¸¾ÍÐ÷
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½fuzzer ï¿½ï¿½È¡×´Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½Ö½ÚµÄ¡ï¿½helloï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½Ëµï¿½ï¿½fork serverï¿½Ñ¾ï¿½×¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   rlen = read(fsrv_st_fd, &status, 4); 
 
   it.it_value.tv_sec = 0;
@@ -2463,7 +2462,7 @@ static u8 run_target(char** argv, u32 timeout) {
      territory. */
   
   //@@RiskNum
-  memset(trace_bits, 0, MAP_SIZE + 8); //½«¹²ÏíÄÚÈÝÇåÁã
+  memset(trace_bits, 0, MAP_SIZE + 8); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   MEM_BARRIER();
 
   /* If we're running in "dumb" mode, we can't rely on the fork server
@@ -2555,17 +2554,17 @@ static u8 run_target(char** argv, u32 timeout) {
     /* In non-dumb mode, we have the fork server up and running, so simply
        tell it to have at it, and then read back PID. */
     
-       //ÔÚ fork serverÆô¶¯Íê³ÉÖ®ºó£¬Ò»µ©ÐèÒªÖ´ÐÐÄ³¸ö²âÊÔÓÃÀý£¬Ôòfuzzer»áµ÷ÓÃrun_target()·½·¨
-       //ÔÚ´Ë·½·¨ÖÐ £¬±ãÊÇÍ¨¹ýÃüÁî¹ÜµÀ£¬¸æËßfork server×¼±¸fork£¬²¢Í¨¹ý×´Ì¬¹ÜµÀ£¬»ñÈ¡×Ó½ø³Ìpid
+       //ï¿½ï¿½ fork serverï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö®ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ÒªÖ´ï¿½ï¿½Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½fuzzerï¿½ï¿½ï¿½ï¿½ï¿½run_target()ï¿½ï¿½ï¿½ï¿½
+       //ï¿½Ú´Ë·ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Üµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½fork server×¼ï¿½ï¿½forkï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½×´Ì¬ï¿½Üµï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½Ó½ï¿½ï¿½ï¿½pid
 
-    //Ð´ÃüÁî¹ÜµÀ
+    //Ð´ï¿½ï¿½ï¿½ï¿½Üµï¿½
     if ((res = write(fsrv_ctl_fd, &prev_timed_out, 4)) != 4) {
 
       if (stop_soon) return 0;
       RPFATAL(res, "Unable to request new process from fork server (OOM?)");
 
     }
-    //¶Á×´Ì¬¹ÜµÀ
+    //ï¿½ï¿½×´Ì¬ï¿½Üµï¿½
     if ((res = read(fsrv_st_fd, &child_pid, 4)) != 4) {
 
       if (stop_soon) return 0;
@@ -2593,7 +2592,7 @@ static u8 run_target(char** argv, u32 timeout) {
   } else {
 
     s32 res;
-    //¶ÁÈ¡×´Ì¬¹ÜµÀ£¬»ñÈ¡×Ó½ø³ÌÍË³ö×´Ì¬
+    //ï¿½ï¿½È¡×´Ì¬ï¿½Üµï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½Ó½ï¿½ï¿½ï¿½ï¿½Ë³ï¿½×´Ì¬
     if ((res = read(fsrv_st_fd, &status, 4)) != 4) {
 
       if (stop_soon) return 0;
@@ -2958,11 +2957,9 @@ static void perform_dry_run(char** argv) {
         //@@Bee initialization phase
         if (q->RiskNum > 0) {
             q->beetype = EMPLOYED;
-            printf("EMPLOYED++\n");
         }
         else {
             q->beetype = ONLOOKER;
-            printf("ONLOOKER++\n");
         }
         
         break;
@@ -3007,7 +3004,7 @@ static void perform_dry_run(char** argv) {
         }
 
       case FAULT_CRASH:  
-
+        // initial cases shouldn't cause crash 
         if (crash_mode) break;
 
         if (skip_crashes) {
@@ -3088,6 +3085,14 @@ static void perform_dry_run(char** argv) {
         FATAL("No instrumentation detected");
 
       case FAULT_NOBITS: 
+
+        //@@Bee initialization phase
+        if (q->RiskNum > 0) {
+            q->beetype = EMPLOYED;
+        }
+        else {
+            q->beetype = ONLOOKER;
+        }
 
         useless_at_start++;
 
@@ -6365,7 +6370,7 @@ havoc_stage:
   /* We essentially just do several thousand runs (depending on perf_score)
      where we take the input file and make random stacked tweaks. */
 
-  for (stage_cur = 0; stage_cur < stage_max; stage_cur++) { // stage_max Óë·ÖÊýÓÐ¹Ø
+  for (stage_cur = 0; stage_cur < stage_max; stage_cur++) { // stage_max ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¹ï¿½
 
     u32 use_stacking = 1 << (1 + UR(HAVOC_STACK_POW2));
 
@@ -6379,7 +6384,7 @@ havoc_stage:
 
           /* Flip a single bit somewhere. Spooky! */
 
-          FLIP_BIT(out_buf, UR(temp_len << 3)); //Ëæ»ú·­×ªÄ³Ò»Î»
+          FLIP_BIT(out_buf, UR(temp_len << 3)); //ï¿½ï¿½ï¿½ï¿½ï¿½×ªÄ³Ò»Î»
           break;
 
         case 1: 
@@ -8007,7 +8012,7 @@ int main(int argc, char** argv) {
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
   while ((opt = getopt(argc, argv, "+i:o:f:m:b:t:T:dnCB:S:M:x:QV")) > 0)
-// Ö÷ÒªÍ¨¹ý getopt »ñÈ¡¸÷ÖÖ»·¾³ÅäÖÃ¡¢Ñ¡Ïî²ÎÊýµÈ..
+// ï¿½ï¿½ÒªÍ¨ï¿½ï¿½ getopt ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ö»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã¡ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½..
     switch (opt) {
 
       case 'i': /* input dir */
@@ -8200,7 +8205,7 @@ int main(int argc, char** argv) {
 
   if (optind == argc || !in_dir || !out_dir) usage(argv[0]);
 
-  setup_signal_handlers(); //×¢²áÐÅºÅ´¦Àíº¯Êý£¬ÉèÖÃÐÅºÅ¾ä±ú
+  setup_signal_handlers(); //×¢ï¿½ï¿½ï¿½ÅºÅ´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÅºÅ¾ï¿½ï¿½
   check_asan_opts();
 
   if (sync_id) fix_up_sync();
@@ -8263,7 +8268,7 @@ int main(int argc, char** argv) {
   }
 
   setup_dirs_fds();
-  read_testcases(); // ¶ÁÈ¡³õÊ¼²âÊÔ¼¯
+  read_testcases(); // ï¿½ï¿½È¡ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½Ô¼ï¿½
   load_auto();
 
   pivot_inputs();
@@ -8338,7 +8343,7 @@ int main(int argc, char** argv) {
       /* If we had a full queue cycle with no new finds, try
          recombination strategies next. */
 
-      if (queued_paths == prev_queued) { //Èç¹ûqueueµÄÑù±¾ÊýºÍÖ®Ç°µÄÒ»Ñù£¬ËµÃ÷Ã»ÓÐ·¢ÏÖÐÂµÄÑù±¾£¬Ôò¶ÔÑù±¾½øÐÐÖØ×é
+      if (queued_paths == prev_queued) { //ï¿½ï¿½ï¿½queueï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö®Ç°ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ëµï¿½ï¿½Ã»ï¿½Ð·ï¿½ï¿½ï¿½ï¿½Âµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
         if (use_splicing) cycles_wo_finds++; else use_splicing = 1;
 
@@ -8351,7 +8356,7 @@ int main(int argc, char** argv) {
 
     }
 
-    skipped_fuzz = fuzz_one(use_argv); // ÕâÊÇÎ¨Ò»µ÷ÓÃfuzz_oneµÄµØ·½
+    skipped_fuzz = fuzz_one(use_argv); // ï¿½ï¿½ï¿½ï¿½Î¨Ò»ï¿½ï¿½ï¿½ï¿½fuzz_oneï¿½ÄµØ·ï¿½
 
     if (!stop_soon && sync_id && !skipped_fuzz) {
       
