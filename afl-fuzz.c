@@ -2773,7 +2773,7 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
     hnb = has_new_bits(virgin_bits);
     //@@Bee
     if (hnb > new_bits) {
-        printf("new path exsist!\n")
+        printf("new path exsist!\n");
         new_bits = hnb;   
     }
 
