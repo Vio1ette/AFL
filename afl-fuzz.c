@@ -244,6 +244,11 @@ static s32 cpu_aff = -1;       	      /* Selected CPU core                */
 
 static FILE* plot_file;               /* Gnuplot output file              */
 
+//@@Bee
+enum BeeType {
+    EMPLOYED,ONLOOKER,SCOUTS
+};
+
 struct queue_entry {
 
   u8* fname;                          /* File name for the test case      */
@@ -265,7 +270,8 @@ struct queue_entry {
       handicap,                       /* Number of queue cycles behind    */
       depth;                          /* Path depth                       */
   //@@RiskNum
-  double RiskNum;                     /* Risk number */
+  double RiskNum =  -1;                     /* Risk number */
+  enum BeeType beetype;
 
   u8* trace_mini;                     /* Trace bytes, if kept             */
   u32 tc_ref;                         /* Trace bytes ref count            */
@@ -2794,7 +2800,7 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
     cksum = hash32(trace_bits, MAP_SIZE, HASH_CONST);
 
     //@@RiskNum
-    if (q->RiskNum == 0) {
+    if (q->RiskNum == -1) {
         has_new_bits(virgin_bits); /* calculate cur_Risk_Num */
         q->RiskNum = cur_Risk_Num;
     }
@@ -2950,6 +2956,16 @@ static void perform_dry_run(char** argv) {
 
         if (crash_mode) FATAL("Test case '%s' does *NOT* crash", fn);
 
+        //@@Bee initialization phase
+        if (q->RiskNum > 0) {
+            q->beetype = EMPLOYED;
+            printf("EMPLOYED++\n");
+        }
+        else {
+            q->beetype = ONLOOKER;
+            printf("ONLOOKER++\n");
+        }
+        
         break;
 
       case FAULT_TMOUT:
@@ -3105,6 +3121,10 @@ static void perform_dry_run(char** argv) {
   }
 
   OKF("All test cases processed.");
+
+  printf("perform_dry_run has been done!\n");
+
+
 
 }
 
@@ -8267,6 +8287,9 @@ int main(int argc, char** argv) {
     use_argv = argv + optind;
 
   perform_dry_run(use_argv);
+  
+  goto stop_fuzzing;
+
 
   cull_queue();
 
