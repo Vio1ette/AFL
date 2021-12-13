@@ -2771,7 +2771,11 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
 
     memcpy(first_trace, trace_bits, MAP_SIZE);
     hnb = has_new_bits(virgin_bits);
-    if (hnb > new_bits) new_bits = hnb;
+    //@@Bee
+    if (hnb > new_bits) {
+        printf("new path exsist!\n")
+        new_bits = hnb;   
+    }
 
   }
 
