@@ -2771,7 +2771,7 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
 
     memcpy(first_trace, trace_bits, MAP_SIZE);
     for (int i = 0; i < MAP_SIZE; i++) {
-        if (trace_bits[i] > 0) {
+        if (trace_bits[i] == 0) {
             printf("trace_bits[%d]: %d\n", i, trace_bits[i]);
         }
     }
