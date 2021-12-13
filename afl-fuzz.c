@@ -1070,7 +1070,6 @@ static inline u8 has_new_bits(u8* virgin_map) {
        almost always be the case. */
 
     if (unlikely(*current) && unlikely(*current & *virgin)) {
-        printf("test ret");
       if (likely(ret < 2)) {
 
         u8* cur = (u8*)current;
@@ -1105,7 +1104,7 @@ static inline u8 has_new_bits(u8* virgin_map) {
     virgin++;
 
   }
-
+  printf("ret: %d\n", ret);
   if (ret && virgin_map == virgin_bits) bitmap_changed = 1;
 
   return ret;
