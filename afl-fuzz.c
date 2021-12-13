@@ -2766,10 +2766,9 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
 
   if (dumb_mode != 1 && !no_forkserver && !forksrv_pid)
     init_forkserver(argv);
-
-  if (q->exec_cksum) {
-
-      printf("lalalal\n");
+    
+   
+  if (q->exec_cksum) {  // Only if it's not first
 
     memcpy(first_trace, trace_bits, MAP_SIZE);
     for (int i = 0; i < MAP_SIZE; i++) {
@@ -2828,7 +2827,8 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
 
       hnb = has_new_bits(virgin_bits);
       if (hnb > new_bits) new_bits = hnb;
-
+      //@@
+      printf("new_bits = hnb\n");
       if (q->exec_cksum) {
 
         u32 i;
