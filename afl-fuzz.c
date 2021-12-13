@@ -2771,24 +2771,8 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
   if (q->exec_cksum) {  // Only if it's not first
 
     memcpy(first_trace, trace_bits, MAP_SIZE);
-    for (int i = 0; i < MAP_SIZE; i++) {
-        if (trace_bits[i] == 0) {
-            printf("trace_bits[%d]: %d\n", i, trace_bits[i]);
-        }
-    }
-    
-    for (int i = 0; i < MAP_SIZE; i++) {
-        if (virgin_bits[i] == 0) {
-            printf("virgin_bits!=1 \n");
-        }
-    }
-
     hnb = has_new_bits(virgin_bits);
-    //@@Bee
-    if (hnb > new_bits) {
-        printf("new path exsist!\n");
-        new_bits = hnb;   
-    }
+    if (hnb > new_bits) new_bits = hnb;   
 
   }
 
@@ -2824,7 +2808,19 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
     
 
     if (q->exec_cksum != cksum) {
+          for (int i = 0; i < MAP_SIZE; i++) {
+        if (trace_bits[i] > 0) {
+            printf("trace_bits[%d]: %d\n", i, trace_bits[i]);
+        }
+    }
+    
+    for (int i = 0; i < MAP_SIZE; i++) {
+        if (virgin_bits[i] == 0) {
+            printf("virgin_bits!=1 \n");
+        }
+    }
 
+      //@@ hnb = 0
       hnb = has_new_bits(virgin_bits);
       if (hnb > new_bits) new_bits = hnb;
       //@@
