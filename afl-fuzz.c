@@ -2800,7 +2800,7 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
     cksum = hash32(trace_bits, MAP_SIZE, HASH_CONST);
 
     //@@RiskNum
-    if (q->RiskNum == -1) {
+    if (q->RiskNum == 0) {
         has_new_bits(virgin_bits); /* calculate cur_Risk_Num */
         q->RiskNum = cur_Risk_Num;
     }
