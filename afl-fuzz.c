@@ -270,7 +270,7 @@ struct queue_entry {
       handicap,                       /* Number of queue cycles behind    */
       depth;                          /* Path depth                       */
   //@@RiskNum
-  double RiskNum =  -1;                     /* Risk number */
+  double RiskNum;                     /* Risk number */
   enum BeeType beetype;
 
   u8* trace_mini;                     /* Trace bytes, if kept             */
